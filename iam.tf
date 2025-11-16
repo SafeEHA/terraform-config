@@ -26,6 +26,46 @@ resource "aws_iam_role_policy_attachment" "ssm_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+# Policy for SSM Session Manager access
+resource "aws_iam_role_policy" "ssm_session_policy" {
+  name = "SSM-Session-Policy"
+  role = aws_iam_role.ec2_ssm_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:StartSession",
+          "ssm:TerminateSession",
+          "ssm:ResumeSession",
+          "ssm:DescribeSessions",
+          "ssm:GetConnectionStatus"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Policy for EC2 Instance Connect
+resource "aws_iam_role_policy" "ec2_instance_connect_policy" {
+  name = "EC2-Instance-Connect-Policy"
+  role = aws_iam_role.ec2_ssm_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "ec2-instance-connect:SendSSHPublicKey"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 # Instance Profile for Public Instance
 resource "aws_iam_instance_profile" "ec2_ssm_profile" {
   name = "EC2-SSM-Profile"
